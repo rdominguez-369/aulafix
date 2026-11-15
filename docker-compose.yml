@@ -1,0 +1,66 @@
+
+# ==============================================
+# AULAFIX - CONFIGURACIÓN DOCKER COMPOSE
+# ==============================================
+
+services:
+
+  # --------------------------------------------
+  # SERVICIO 1: PHP 8.3 + APACHE
+  # --------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    environment:
+      DB_HOST: db
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+
+    ports:
+      - "8080:80"
+
+    volumes:
+      - ./public:/var/www/html
+      - ./includes:/var/www/includes:ro
+      - ./config.php:/var/www/config.php:ro
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+  # --------------------------------------------
+  # SERVICIO 2: MYSQL 8
+  # --------------------------------------------
+  db:
+    image: mysql:8.0
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h localhost -u root -p"$$MYSQL_ROOT_PASSWORD"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+    restart: unless-stopped
+
+# ----------------------------------------------
+# VOLUMEN PERSISTENTE DE MYSQL
+# ----------------------------------------------
+volumes:
+  mysql_data:

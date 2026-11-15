@@ -1,0 +1,30 @@
+
+# ==========================================
+# AULAFIX - ARCHIVOS IGNORADOS POR GIT
+# ==========================================
+
+# Variables de entorno y credenciales
+.env
+.env.*
+!.env.example
+
+# Dependencias
+/vendor/
+/node_modules/
+
+# Archivos temporales
+*.log
+*.tmp
+*.cache
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Configuración local de editores
+.vscode/
+.idea/
+
+# Copias de seguridad
+*.bak
+*.sql.gz
