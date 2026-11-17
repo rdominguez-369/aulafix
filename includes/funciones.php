@@ -91,3 +91,62 @@ function limpiarCampo(mixed $valor): string
     // PASO 2: Eliminar espacios al inicio y al final.
     return trim($valor);
 }
+
+
+/**
+ * =====================================================
+ * AULAFIX - PROTECCIÓN CSRF
+ * =====================================================
+ *
+ * Estas funciones permiten generar y verificar
+ * un token de seguridad para los formularios POST.
+ */
+
+
+/**
+ * Genera o recupera el token CSRF de la sesión.
+ *
+ * @return string Token de seguridad.
+ */
+function obtenerTokenCSRF(): string
+{
+    // PASO 1: Comprobar si existe una sesión activa.
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+
+    // PASO 2: Generar el token si todavía no existe.
+    if (!isset($_SESSION['csrf_token'])) {
+
+        // Generamos 32 bytes aleatorios y los
+        // convertimos a una cadena hexadecimal.
+        $_SESSION['csrf_token'] = bin2hex(
+            random_bytes(32)
+        );
+    }
+
+    // PASO 3: Devolver el token de la sesión.
+    return $_SESSION['csrf_token'];
+}
+
+
+/**
+ * Comprueba si el token recibido es válido.
+ *
+ * @param string $token Token enviado por el formulario.
+ * @return bool True si coincide con el de la sesión.
+ */
+function validarTokenCSRF(string $token): bool
+{
+    // PASO 1: Comprobar si existe una sesión activa.
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+
+    // PASO 2: Recuperar el token almacenado.
+    $tokenGuardado = $_SESSION['csrf_token'] ?? '';
+
+    // PASO 3: Comparar ambos tokens de forma segura.
+    return $tokenGuardado !== ''
+        && hash_equals($tokenGuardado, $token);
+}

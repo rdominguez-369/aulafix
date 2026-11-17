@@ -1,5 +1,16 @@
 <?php
 
+// =====================================================
+// PASO 0: Iniciar la sesión antes de generar contenido.
+// =====================================================
+
+// Las sesiones deben iniciarse antes de enviar HTML
+// o cualquier otra salida al navegador.
+
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
 /**
  * =====================================================
  * AULAFIX - REGISTRO DE NUEVA INCIDENCIA
@@ -32,6 +43,24 @@ $tituloPagina = 'Nueva incidencia';
 // =====================================================
 
 require_once __DIR__ . '/../includes/funciones.php';
+
+// =====================================================
+// PASO 2.1: Cargar las funciones de incidencias.
+// =====================================================
+
+// Permite utilizar guardarIncidencia(), que inserta
+// los registros en MySQL mediante PDO.
+
+require_once __DIR__ . '/../includes/incidencias.php';
+
+// =====================================================
+// PASO 3: Generar o recuperar el token CSRF.
+// =====================================================
+
+// Esta llamada inicia la sesión, si es necesario,
+// y obtiene el token que utilizaremos en el formulario.
+
+$tokenCSRF = obtenerTokenCSRF();
 
 
 // =====================================================
@@ -67,6 +96,19 @@ $prioridad = '';
 // =====================================================
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // =====================================================
+    // PASO 5: Comprobar el token CSRF recibido.
+    // =====================================================
+
+    $tokenRecibido = $_POST['csrf_token'] ?? '';
+
+    if (
+        !is_string($tokenRecibido)
+        || !validarTokenCSRF($tokenRecibido)
+    ) {
+        $errores[] = 'La solicitud no es válida. Recarga el formulario.';
+    }
 
     // =================================================
     // PASO 6: Obtener y limpiar los datos recibidos.
@@ -131,19 +173,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     }
 
-
-    // =================================================
-    // PASO 11: Comprobar si existen errores.
-    // =================================================
-
-    // Si el array $errores está vacío, significa
-    // que todos los campos han superado la validación.
+    // =====================================================
+    // PASO 11: Guardar la incidencia si no existen errores.
+    // =====================================================
 
     if (empty($errores)) {
 
-        $mensajeExito =
-            'Incidencia validada correctamente. '
-            . 'Todavía no se ha guardado en la base de datos.';
+        try {
+
+            // PASO 11.1: Insertar la incidencia en MySQL.
+            // La función devuelve el ID del nuevo registro.
+
+            $idIncidencia = guardarIncidencia(
+                $titulo,
+                $descripcion,
+                $categoria,
+                $prioridad
+            );
+
+            // PASO 11.2: Guardar un mensaje temporal
+            // en la sesión para mostrarlo después.
+
+            $_SESSION['mensaje_exito'] =
+                'Incidencia registrada correctamente. '
+                . 'Identificador: ' . $idIncidencia;
+
+            // PASO 11.3: Redirigir al listado de incidencias.
+            // Evita repetir el POST al actualizar la página.
+
+            header('Location: /incidencias.php', true, 303);
+            exit;
+
+        } catch (PDOException $e) {
+
+            // PASO 11.4: Mostrar un mensaje genérico
+            // si ocurre un error en la base de datos.
+            // No exponemos información interna de MySQL.
+
+            error_log($e->getMessage());
+
+            $errores[] =
+                'No se pudo registrar la incidencia. '
+                . 'Inténtalo nuevamente.';
+
+        }
 
     }
 
@@ -216,6 +289,13 @@ require_once __DIR__ . '/../includes/cabecera.php';
 
     <form action="/nueva-incidencia.php" method="POST">
 
+    <!-- PASO 13.1: Enviar el token de seguridad CSRF -->
+
+    <input
+        type="hidden"
+        name="csrf_token"
+        value="<?= e($tokenCSRF) ?>"
+    >
         <!-- CAMPO 1: Título de la incidencia -->
 
         <div>

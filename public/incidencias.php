@@ -18,6 +18,22 @@
 
 $tituloPagina = 'Incidencias';
 
+// =====================================================
+// PASO 1.1: Recuperar el mensaje de confirmación.
+// =====================================================
+
+// Iniciamos o recuperamos la sesión del usuario.
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
+// Recuperamos el mensaje almacenado después del registro.
+$mensajeExito = $_SESSION['mensaje_exito'] ?? '';
+
+// Eliminamos el mensaje de la sesión para que
+// solamente aparezca una vez.
+unset($_SESSION['mensaje_exito']);
+
 
 // =====================================================
 // PASO 2: Cargar las funciones de incidencias.
@@ -50,6 +66,18 @@ require_once __DIR__ . '/../includes/cabecera.php';
 <section>
 
     <h2>Listado de incidencias</h2>
+
+    <!-- =================================================
+     Mostrar el mensaje de confirmación del registro.
+     ================================================= -->
+
+    <?php if ($mensajeExito !== ''): ?>
+
+        <p role="status">
+            <?= e($mensajeExito) ?>
+        </p>
+
+    <?php endif; ?>
 
     <p>
         Consulta las incidencias registradas

@@ -60,3 +60,63 @@ function obtenerIncidencias(): array
     // PASO 7: Devolver las incidencias.
     return $incidencias;
 }
+
+
+/**
+ * =====================================================
+ * AULAFIX - GUARDAR UNA INCIDENCIA
+ * =====================================================
+ *
+ * Inserta una nueva incidencia en MySQL mediante
+ * una consulta preparada con PDO.
+ *
+ * @param string $titulo Título de la incidencia.
+ * @param string $descripcion Descripción del problema.
+ * @param string $categoria Categoría seleccionada.
+ * @param string $prioridad Prioridad seleccionada.
+ *
+ * @return int Identificador de la incidencia creada.
+ * @throws PDOException Si falla la operación SQL.
+ */
+function guardarIncidencia(
+    string $titulo,
+    string $descripcion,
+    string $categoria,
+    string $prioridad
+): int {
+
+    // PASO 1: Conectar con MySQL.
+    $pdo = conectarBD();
+
+    // PASO 2: Definir la consulta SQL.
+    // Los marcadores :titulo, :descripcion, etc.
+    // serán sustituidos por valores de forma segura.
+    $sql = '
+        INSERT INTO incidencias (
+            titulo,
+            descripcion,
+            categoria,
+            prioridad
+        )
+        VALUES (
+            :titulo,
+            :descripcion,
+            :categoria,
+            :prioridad
+        )
+    ';
+
+    // PASO 3: Preparar la consulta.
+    $sentencia = $pdo->prepare($sql);
+
+    // PASO 4: Ejecutar la consulta con los datos.
+    $sentencia->execute([
+        'titulo' => $titulo,
+        'descripcion' => $descripcion,
+        'categoria' => $categoria,
+        'prioridad' => $prioridad
+    ]);
+
+    // PASO 5: Obtener el identificador generado.
+    return (int) $pdo->lastInsertId();
+}
