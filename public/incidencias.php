@@ -5,46 +5,50 @@
  * AULAFIX - LISTADO DE INCIDENCIAS
  * =====================================================
  *
- * Primera versión del listado utilizando
- * datos de ejemplo almacenados en un array.
+ * Esta página muestra las incidencias almacenadas
+ * en la base de datos MySQL.
  *
- * Posteriormente utilizaremos MySQL.
+ * Los datos se obtienen mediante la función
+ * reutilizable obtenerIncidencias(), que utiliza PDO.
  */
 
+// =====================================================
 // PASO 1: Definir el título de la página.
+// =====================================================
+
 $tituloPagina = 'Incidencias';
 
-// PASO 2: Crear un array con incidencias de ejemplo.
-$incidencias = [
-    [
-        'id' => 1,
-        'titulo' => 'Ordenador no enciende',
-        'categoria' => 'Hardware',
-        'estado' => 'Pendiente',
-        'prioridad' => 'Alta'
-    ],
-    [
-        'id' => 2,
-        'titulo' => 'Problema de conexión a Internet',
-        'categoria' => 'Redes',
-        'estado' => 'En proceso',
-        'prioridad' => 'Media'
-    ],
-    [
-        'id' => 3,
-        'titulo' => 'Proyector sin imagen',
-        'categoria' => 'Hardware',
-        'estado' => 'Resuelta',
-        'prioridad' => 'Baja'
-    ]
-];
 
-// PASO 3: Cargar la cabecera común.
+// =====================================================
+// PASO 2: Cargar las funciones de incidencias.
+// =====================================================
+
+// Este archivo contiene obtenerIncidencias(),
+// que consulta la base de datos mediante PDO.
+
+require_once __DIR__ . '/../includes/incidencias.php';
+
+
+// =====================================================
+// PASO 3: Obtener las incidencias reales de MySQL.
+// =====================================================
+
+// Antes utilizábamos un array con datos ficticios.
+// Ahora recuperamos los registros almacenados en MySQL.
+
+$incidencias = obtenerIncidencias();
+
+
+// =====================================================
+// PASO 4: Cargar la cabecera común.
+// =====================================================
+
 require_once __DIR__ . '/../includes/cabecera.php';
 
 ?>
 
 <section>
+
     <h2>Listado de incidencias</h2>
 
     <p>
@@ -52,35 +56,76 @@ require_once __DIR__ . '/../includes/cabecera.php';
         en los equipos del aula.
     </p>
 
-    <!-- PASO 4: Mostrar las incidencias -->
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Título</th>
-                <th>Categoría</th>
-                <th>Estado</th>
-                <th>Prioridad</th>
-            </tr>
-        </thead>
+    <!-- ============================================= -->
+    <!-- PASO 5: Comprobar si existen incidencias     -->
+    <!-- ============================================= -->
 
-        <tbody>
-            <?php foreach ($incidencias as $incidencia): ?>
+    <?php if (empty($incidencias)): ?>
+
+        <p>
+            Todavía no existen incidencias registradas.
+        </p>
+
+    <?php else: ?>
+
+        <!-- ========================================= -->
+        <!-- PASO 6: Mostrar las incidencias en tabla -->
+        <!-- ========================================= -->
+
+        <table>
+
+            <thead>
                 <tr>
-                    <td><?= e($incidencia['id']) ?></td>
-                    <td><?= e($incidencia['titulo']) ?></td>
-                    <td><?= e($incidencia['categoria']) ?></td>
-                    <td><?= e($incidencia['estado']) ?></td>
-                    <td><?= e($incidencia['prioridad']) ?></td>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Categoría</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
                 </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+            </thead>
+
+            <tbody>
+
+                <?php foreach ($incidencias as $incidencia): ?>
+
+                    <tr>
+                        <td>
+                            <?= e($incidencia['id']) ?>
+                        </td>
+
+                        <td>
+                            <?= e($incidencia['titulo']) ?>
+                        </td>
+
+                        <td>
+                            <?= e($incidencia['categoria']) ?>
+                        </td>
+
+                        <td>
+                            <?= e($incidencia['estado']) ?>
+                        </td>
+
+                        <td>
+                            <?= e($incidencia['prioridad']) ?>
+                        </td>
+                    </tr>
+
+                <?php endforeach; ?>
+
+            </tbody>
+
+        </table>
+
+    <?php endif; ?>
+
 </section>
 
 <?php
 
-// PASO 5: Cargar el pie de página común.
+// =====================================================
+// PASO 7: Cargar el pie de página común.
+// =====================================================
+
 require_once __DIR__ . '/../includes/pie.php';
 
 ?>

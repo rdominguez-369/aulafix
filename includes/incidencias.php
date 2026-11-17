@@ -1,74 +1,62 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * =====================================================
- * AULAFIX - LISTADO DE INCIDENCIAS
+ * AULAFIX - FUNCIONES DE INCIDENCIAS
  * =====================================================
  *
- * Esta página obtiene las incidencias mediante
- * una función reutilizable.
+ * Este archivo contiene las funciones relacionadas
+ * con la gestión de incidencias del aula.
  *
- * Los datos se encuentran separados del HTML.
+ * En esta versión obtenemos las incidencias reales
+ * almacenadas en MySQL mediante PDO.
  */
 
-// PASO 1: Definir el título de la página.
-$tituloPagina = 'Incidencias';
+// =====================================================
+// PASO 1: Cargar la conexión a la base de datos.
+// =====================================================
 
-// PASO 2: Cargar las funciones de incidencias.
-require_once __DIR__ . '/../includes/incidencias.php';
+require_once __DIR__ . '/db.php';
 
-// PASO 3: Obtener los datos mediante la función.
-$incidencias = obtenerIncidencias();
 
-// PASO 4: Cargar la cabecera común.
-require_once __DIR__ . '/../includes/cabecera.php';
+// =====================================================
+// PASO 2: Definir la función obtenerIncidencias().
+// =====================================================
 
-?>
+/**
+ * Obtiene todas las incidencias almacenadas en MySQL.
+ *
+ * @return array Lista de incidencias.
+ * @throws PDOException Si ocurre un error en la consulta.
+ */
+function obtenerIncidencias(): array
+{
+    // PASO 3: Establecer la conexión con MySQL.
+    $pdo = conectarBD();
 
-<!-- PASO 5: Mostrar el contenido principal -->
-<section>
+    // PASO 4: Preparar la consulta SQL.
+    // Ordenamos las incidencias desde la más reciente.
+    $sql = '
+        SELECT
+            id,
+            titulo,
+            descripcion,
+            categoria,
+            prioridad,
+            estado,
+            fecha_creacion
+        FROM incidencias
+        ORDER BY fecha_creacion DESC, id DESC
+    ';
 
-    <h2>Listado de incidencias</h2>
+    // PASO 5: Ejecutar la consulta SQL.
+    $sentencia = $pdo->query($sql);
 
-    <p>
-        Consulta las incidencias registradas
-        en los equipos del aula.
-    </p>
+    // PASO 6: Recuperar los resultados.
+    $incidencias = $sentencia->fetchAll(PDO::FETCH_ASSOC);
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Título</th>
-                <th>Categoría</th>
-                <th>Estado</th>
-                <th>Prioridad</th>
-            </tr>
-        </thead>
-
-        <tbody>
-
-            <!-- PASO 6: Recorrer las incidencias -->
-            <?php foreach ($incidencias as $incidencia): ?>
-
-                <tr>
-                    <td><?= e($incidencia['id']) ?></td>
-                    <td><?= e($incidencia['titulo']) ?></td>
-                    <td><?= e($incidencia['categoria']) ?></td>
-                    <td><?= e($incidencia['estado']) ?></td>
-                    <td><?= e($incidencia['prioridad']) ?></td>
-                </tr>
-
-            <?php endforeach; ?>
-
-        </tbody>
-    </table>
-
-</section>
-
-<?php
-
-// PASO 7: Cargar el pie de página común.
-require_once __DIR__ . '/../includes/pie.php';
-
-?>
+    // PASO 7: Devolver las incidencias.
+    return $incidencias;
+}
