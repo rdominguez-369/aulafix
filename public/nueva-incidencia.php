@@ -318,7 +318,11 @@ require_once __DIR__ . '/../includes/cabecera.php';
          PASO 15: Mostrar el formulario HTML.
          ============================================= -->
 
-    <form action="/nueva-incidencia.php" method="POST">
+    <form
+    id="formNuevaIncidencia"
+    action="/nueva-incidencia.php"
+    method="POST"
+    >
 
     <!-- PASO 13.1: Enviar el token de seguridad CSRF -->
 
@@ -341,6 +345,10 @@ require_once __DIR__ . '/../includes/cabecera.php';
                 value="<?= e($titulo) ?>"
                 required
             >
+
+            <small id="contadorTitulo" aria-live="polite">
+                0 / 100 caracteres
+            </small>
 
         </div>
 

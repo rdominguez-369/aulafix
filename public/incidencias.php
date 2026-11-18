@@ -71,18 +71,61 @@ require_once __DIR__ . '/../includes/cabecera.php';
      Mostrar el mensaje de confirmación del registro.
      ================================================= -->
 
-    <?php if ($mensajeExito !== ''): ?>
 
-        <p role="status">
-            <?= e($mensajeExito) ?>
-        </p>
+<?php if ($mensajeExito !== ''): ?>
 
-    <?php endif; ?>
-
-    <p>
-        Consulta las incidencias registradas
-        en los equipos del aula.
+    <p role="status">
+        <?= e($mensajeExito) ?>
     </p>
+
+    <!-- Eliminar el borrador solo después de un registro exitoso -->
+    <script>
+        localStorage.removeItem("aulafix_borrador_incidencia");
+    </script>
+
+<?php endif; ?>
+
+<p>
+    Consulta las incidencias registradas
+    en los equipos del aula.
+</p>
+
+
+<!-- ========================================= -->
+<!-- FILTROS DINÁMICOS - DWEC                 -->
+<!-- ========================================= -->
+
+<div class="filtros-incidencias">
+
+    <h3>Buscar y filtrar incidencias</h3>
+
+    <label for="buscarIncidencia">Buscar por título:</label>
+    <input
+        type="search"
+        id="buscarIncidencia"
+        placeholder="Escribe el título..."
+    >
+
+    <label for="filtrarEstado">Estado:</label>
+    <select id="filtrarEstado">
+        <option value="">Todos los estados</option>
+        <option value="abierta">Abierta</option>
+        <option value="en_curso">En curso</option>
+        <option value="resuelta">Resuelta</option>
+    </select>
+
+    <label for="filtrarPrioridad">Prioridad:</label>
+    <select id="filtrarPrioridad">
+        <option value="">Todas las prioridades</option>
+        <option value="Alta">Alta</option>
+        <option value="Media">Media</option>
+        <option value="Baja">Baja</option>
+    </select>
+
+    <p id="resultadoFiltros" role="status" aria-live="polite"></p>
+
+</div>
+
 
     <!-- ============================================= -->
     <!-- PASO 5: Comprobar si existen incidencias     -->
@@ -100,7 +143,7 @@ require_once __DIR__ . '/../includes/cabecera.php';
         <!-- PASO 6: Mostrar las incidencias en tabla -->
         <!-- ========================================= -->
 
-        <table>
+        <table id="tablaIncidencias">
 
             <thead>
                 <tr>
