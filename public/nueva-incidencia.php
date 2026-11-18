@@ -1,16 +1,5 @@
 <?php
 
-// =====================================================
-// PASO 0: Iniciar la sesión antes de generar contenido.
-// =====================================================
-
-// Las sesiones deben iniciarse antes de enviar HTML
-// o cualquier otra salida al navegador.
-
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
-
 /**
  * =====================================================
  * AULAFIX - REGISTRO DE NUEVA INCIDENCIA
@@ -28,7 +17,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
  * - Mostrar un mensaje de confirmación.
  *
  * IMPORTANTE:
- * Todavía no almacena incidencias en MySQL.
+ * Las incidencias se almacenan en MySQL mediante PDO.
  */
 
 // =====================================================
@@ -53,6 +42,17 @@ require_once __DIR__ . '/../includes/funciones.php';
 
 require_once __DIR__ . '/../includes/incidencias.php';
 
+
+ 
+// =====================================================
+// PASO 2.2: Cargar las funciones de equipos.
+// =====================================================
+
+// Permite utilizar obtenerEquipos() para consultar
+// los dispositivos registrados en MySQL.
+
+require_once __DIR__ . '/../includes/equipos.php';
+
 // =====================================================
 // PASO 3: Generar o recuperar el token CSRF.
 // =====================================================
@@ -73,6 +73,13 @@ $categoriasValidas = obtenerCategorias();
 // Obtener las prioridades desde la función reutilizable.
 $prioridadesValidas = obtenerPrioridades();
 
+// =====================================================
+// PASO 3.1: Preparar la lista de equipos.
+// =====================================================
+
+// Obtener los equipos registrados en la base de datos.
+$equipos = obtenerEquipos();
+
 
 // =====================================================
 // PASO 4: Inicializar las variables.
@@ -90,6 +97,7 @@ $descripcion = '';
 $categoria = '';
 $prioridad = '';
 
+$equipoId = null;
 
 // =====================================================
 // PASO 5: Comprobar si se ha enviado el formulario.
@@ -174,6 +182,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // =====================================================
+    // Validar el equipo afectado.
+    // =====================================================
+
+    $equipoRecibido = $_POST['equipo_id'] ?? null;
+
+    $equipoId = filter_var(
+        $equipoRecibido,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]
+    );
+
+    if ($equipoId === false || $equipoId === null) {
+
+        $errores[] = 'Debes seleccionar un equipo válido.';
+
+    } elseif (!existeEquipo($equipoId)) {
+
+        $errores[] = 'El equipo seleccionado no existe.';
+
+    }
+
+    // =====================================================
     // PASO 11: Guardar la incidencia si no existen errores.
     // =====================================================
 
@@ -188,7 +218,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $titulo,
                 $descripcion,
                 $categoria,
-                $prioridad
+                $prioridad,
+                $equipoId
             );
 
             // PASO 11.2: Guardar un mensaje temporal
@@ -362,7 +393,47 @@ require_once __DIR__ . '/../includes/cabecera.php';
         </div>
 
 
-        <!-- CAMPO 4: Prioridad de la incidencia -->
+        <!-- =====================================================
+            CAMPO 4: Equipo afectado
+            ===================================================== -->
+
+        <?php if (!empty($equipos)): ?>
+
+            <div>
+
+                <label for="equipo_id">Equipo afectado:</label>
+
+                <select
+                    id="equipo_id"
+                    name="equipo_id"
+                    required
+                >
+
+                    <option value="">
+                        Selecciona un equipo
+                    </option>
+
+                    <?php foreach ($equipos as $equipo): ?>
+
+                        <option
+                            value="<?= (int) $equipo['id'] ?>"
+                            <?= $equipoId === (int) $equipo['id'] ? 'selected' : '' ?>
+                        >
+                            <?= e($equipo['nombre']) ?>
+                            -
+                            <?= e($equipo['ubicacion']) ?>
+                        </option>
+
+                    <?php endforeach; ?>
+
+                </select>
+
+            </div>
+
+        <?php endif; ?>
+
+
+        <!-- CAMPO 5: Prioridad de la incidencia -->
 
         <div>
 

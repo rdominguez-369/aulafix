@@ -67,22 +67,20 @@ function obtenerIncidencias(): array
  * AULAFIX - GUARDAR UNA INCIDENCIA
  * =====================================================
  *
- * Inserta una nueva incidencia en MySQL mediante
- * una consulta preparada con PDO.
+ * Inserta una incidencia mediante PDO.
  *
- * @param string $titulo Título de la incidencia.
- * @param string $descripcion Descripción del problema.
- * @param string $categoria Categoría seleccionada.
- * @param string $prioridad Prioridad seleccionada.
+ * El identificador del equipo es opcional
+ * temporalmente para mantener la compatibilidad
+ * con el formulario actual.
  *
  * @return int Identificador de la incidencia creada.
- * @throws PDOException Si falla la operación SQL.
  */
 function guardarIncidencia(
     string $titulo,
     string $descripcion,
     string $categoria,
-    string $prioridad
+    string $prioridad,
+    ?int $equipoId = null
 ): int {
 
     // PASO 1: Conectar con MySQL.
@@ -91,30 +89,37 @@ function guardarIncidencia(
     // PASO 2: Definir la consulta SQL.
     // Los marcadores :titulo, :descripcion, etc.
     // serán sustituidos por valores de forma segura.
+
+    // PASO 2: Preparar la consulta SQL.
+    // Incluimos el identificador del equipo afectado.
+
     $sql = '
         INSERT INTO incidencias (
             titulo,
             descripcion,
             categoria,
-            prioridad
+            prioridad,
+            equipo_id
         )
         VALUES (
             :titulo,
             :descripcion,
             :categoria,
-            :prioridad
+            :prioridad,
+            :equipo_id
         )
     ';
 
     // PASO 3: Preparar la consulta.
     $sentencia = $pdo->prepare($sql);
 
-    // PASO 4: Ejecutar la consulta con los datos.
+    // PASO 4: Ejecutar la consulta.
     $sentencia->execute([
         'titulo' => $titulo,
         'descripcion' => $descripcion,
         'categoria' => $categoria,
-        'prioridad' => $prioridad
+        'prioridad' => $prioridad,
+        'equipo_id' => $equipoId
     ]);
 
     // PASO 5: Obtener el identificador generado.

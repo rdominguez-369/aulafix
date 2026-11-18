@@ -28,3 +28,14 @@ Thumbs.db
 # Copias de seguridad
 *.bak
 *.sql.gz
+
+# ========================================
+# AULAFIX - COPIAS DE SEGURIDAD LOCALES
+# ========================================
+
+# Evitar subir volcados de MySQL a GitHub.
+/backups/
+
+# Copias temporales utilizadas durante las pruebas
+/database/migracion_01_test.sql
+/public/nueva-incidencia-test.php
